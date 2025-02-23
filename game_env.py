@@ -1,5 +1,41 @@
 import random #will be used for maze generator
 
+def ran_prim(maze):
+    
+    #len(maze[0]) -> width, len(maze) -> height
+    WIDTH = len(maze[0])
+    HEIGHT = len(maze)
+
+    x ,y = random.randint(0 , WIDTH - 1), random.randint(0, HEIGHT -1) 
+    maze[x][y] = 0
+
+    walls = []
+    directions = [(0,1),(0,-1),(1,0),(-1,0)]
+    for dx, dy in directions:
+        nx, ny = x + dx, y + dy
+        if 0<= nx < WIDTH and 0<= ny < HEIGHT:
+            walls.append((nx, ny, x, y))
+
+    while walls:
+        wall_index = random.randint(0, len(walls) - 1) #Randomly selects a wall
+        wx, wy, px, py = walls.pop(wall_index)
+
+        if maze[wy][wx] == 1: #Checks the cell on the opposite side of the wall is still a wall or not
+            ox, oy = wx + (wx - px), wx - (wy - py) #Calculates the opposite side of the wall
+
+            if 0<= ox < WIDTH and 0<= oy < HEIGHT: #to create the path
+                maze[wy][wx] = 0
+                maze[oy][ox] = 0
+
+                for dx, dy in directions:
+                    nx, ny = ox + dx, oy + dy
+                    if 0 <= nx < WIDTH and 0 <= ny < HEIGHT and maze[ny][nx] == 1:
+                        walls.append((nx, ny, ox, oy))
+
+    return maze 
+
+
+
 def recursive_backtracking(maze, x=0, y=0):
     directions = [(0,1),(0,-1),(1,0),(-1,0)]
     random.shuffle(directions) #To randomize the direction
@@ -18,9 +54,17 @@ def maze_initializer(n=4):
     maze[0][0] = 'S'
     maze[n-1][n-1] = 'G'
 
-    recursive_backtracking(maze)
+    # recursive_backtracking(maze)
+    ran_prim(maze)
 
     if maze[-2][-1] == 1 and maze[-1][-2] == 1: # Check if the goal is not blocked
         maze[-2][-1] = 0
 
     return maze
+
+
+if __name__ == "__main__":
+
+    maze = maze_initializer(6)
+    for _ in maze:
+        print(_)
