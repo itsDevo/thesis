@@ -20,3 +20,8 @@ Otherwise It won't recognize it.
 The code is done!
 Now I need to find the implementations for example: To create a streak function
 Plus I need to implement other algorithms
+
+## 21.04
+Streak function is done!
+The code works correctly. (However it needs performance improvement)
+I need to focus on algorithms
