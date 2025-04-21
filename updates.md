@@ -23,5 +23,5 @@ Plus I need to implement other algorithms
 
 ## 21.04
 Streak function is done!
-The code works correctly. (However it needs performance improvement)
-I need to focus on algorithms
+The code works correctly. (However it needs performance improvement) #done!
+I need to focus on algorithms 
