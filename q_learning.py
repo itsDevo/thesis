@@ -5,18 +5,22 @@ import gym_maze
 import matplotlib.pyplot as plt
 import sys
 import os
+import math
 
-def run(episodes, is_training=True,verbose=0,render=False):
+def run(episodes, training_mode=1,verbose=0,render=False):
 
     env = gym.make("maze-sample-5x5-v0") ### I need to put the environment here
 
+    MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
 
     LEARNING_RATE = 0.9 #alpha value
-    DISCOUNT_FACTOR = 0.1 #gamma value 
+    DISCOUNT_FACTOR = 0.1 #gamma value
     EPSILON = 1 # 1 = 100% random actions
-    EPSILON_DECAY_RATE = 0.0001 # Since we are gonna have 10000 episodes at the last episode it will become 1
+    EPSILON_DECAY_RATE = 0.01 # Its heuristic decay rate
+    DECAY_FACTOR = np.prod(MAZE_SIZE, dtype=float) / 10 # The decay factor for the epsilon value its heuristic
+    MIN_EXPLORE_RATE = 0.001 # Minimum epsilon value
+    MIN_LEARNING_RATE = 0.2 # Minimum learning rate
 
-    MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
     SOLVED_THRESHOLD = np.prod(MAZE_SIZE, dtype=int) # The number of steps to solve the maze to count as a streak
 
     NUM_BUCKETS = MAZE_SIZE #one bucket per grid
@@ -57,9 +61,8 @@ def run(episodes, is_training=True,verbose=0,render=False):
             state = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the new state of the environment (the position of the agent in the maze)
             total_reward += reward # Here we get the reward of the action taken (the position of the agent in the maze)
 
-            best_q = np.amax(q_table[state]) # Here we get the best q value of the new state (the position of the agent in the maze)
-            if is_training: # we apply the q function
-                q_table[state_0 + (action,)] += LEARNING_RATE * (reward + DISCOUNT_FACTOR * (best_q) - q_table[state_0 + (action,)])
+            best_q = np.amax(q_table[state]) # Here we get the best q value of the new state (the position of the agent in the maze) 
+            q_table[state_0 + (action,)] += LEARNING_RATE * (reward + DISCOUNT_FACTOR * (best_q) - q_table[state_0 + (action,)]) # we apply the q function
 
             state_0 = state
 
@@ -115,11 +118,14 @@ def run(episodes, is_training=True,verbose=0,render=False):
         steps_per_episode.append(step + 1)
         explore_rates.append(EPSILON)
 
-        EPSILON = max(EPSILON - EPSILON_DECAY_RATE, 0) # decrease the epsilon. we want it to exploit as it goes further
-
-        if(EPSILON == 0):
-            LEARNING_RATE = 0.0001
-    
+        if training_mode == 1:
+            EPSILON = max(MIN_EXPLORE_RATE, min(0.8, 1.0 - math.log10((episode+1)/DECAY_FACTOR))) # decrease the epsilon. we want it to exploit as it goes further
+            LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.8, 1.0 - math.log10((episode+1)/DECAY_FACTOR))) # decrease the learning rate. we want it to give more less to the new learning as it goes further
+        elif training_mode == 2:
+            EPSILON = max(EPSILON - EPSILON_DECAY_RATE, 0) # decrease the epsilon. we want it to exploit as it goes further
+            if(EPSILON == 0):
+                LEARNING_RATE = 0.0001
+        
     env.close()
     plot_results(rewards_per_episode, steps_per_episode, explore_rates)
     
@@ -193,4 +199,4 @@ def plot_results(rewards_per_episode, steps_per_episode, explore_rates):
 
 
 if __name__ == "__main__":
-    run(10000, is_training=True, verbose=1, render=False)
+    run(10000, training_mode=2, verbose=1, render=False)
