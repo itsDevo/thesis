@@ -39,53 +39,52 @@ def run(episodes, is_training=True,verbose=0,render=False):
         obv = env.reset()
 
         state_0 = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the state of the environment (the position of the agent in the maze)
-        done = False
         total_reward = 0
+        # done = False
         # truncated = False # There is no truncated in the step function
 
 
         for step in range(MAX_STEPS):
 
-            while (not done): # Here we check if the episode is done or not (if the agent has reached the goal or not)
-                if random.random() < EPSILON: # here we make it a random move if the epsilon is high (we make it learn)
-                    action = env.action_space.sample() # It takes the action (left, down, up, right)
-                else:
-                    action = np.argmax(q_table[state_0]) # here we make it to exploit from it's previous learning
+            if random.random() < EPSILON: # here we make it a random move if the epsilon is high (we make it learn)
+                action = env.action_space.sample() # It takes the action (left, down, up, right)
+            else:
+                action = np.argmax(q_table[state_0]) # here we make it to exploit from it's previous learning
 
 
-                obv,reward,done,info = env.step(action) 
+            obv,reward,done,info = env.step(action) 
 
-                state = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the new state of the environment (the position of the agent in the maze)
-                total_reward += reward # Here we get the reward of the action taken (the position of the agent in the maze)
+            state = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the new state of the environment (the position of the agent in the maze)
+            total_reward += reward # Here we get the reward of the action taken (the position of the agent in the maze)
 
-                best_q = np.amax(q_table[state]) # Here we get the best q value of the new state (the position of the agent in the maze)
-                if is_training: # we apply the q function
-                    q_table[state_0 + (action,)] += LEARNING_RATE * (reward + DISCOUNT_FACTOR * (best_q) - q_table[state_0 + (action,)])
+            best_q = np.amax(q_table[state]) # Here we get the best q value of the new state (the position of the agent in the maze)
+            if is_training: # we apply the q function
+                q_table[state_0 + (action,)] += LEARNING_RATE * (reward + DISCOUNT_FACTOR * (best_q) - q_table[state_0 + (action,)])
 
-                state_0 = state
+            state_0 = state
 
-                    # Print data
-                if verbose == 2:
+                # Print data
+            if verbose == 2:
+                print("\nEpisode = %d" % episode)
+                print("step = %d" % step)
+                print("Action: %d" % action)
+                print("State: %s" % str(state))
+                print("Reward: %f" % reward)
+                print("Best Q: %f" % best_q)
+                print("Explore rate: %f" % EPSILON)
+                print("Learning rate: %f" % LEARNING_RATE)
+                print("Streaks: %d" % num_streaks)
+                print("")
+
+            elif verbose == 1: 
+                if done or step >= MAX_STEPS - 1:
                     print("\nEpisode = %d" % episode)
                     print("step = %d" % step)
-                    print("Action: %d" % action)
-                    print("State: %s" % str(state))
-                    print("Reward: %f" % reward)
-                    print("Best Q: %f" % best_q)
                     print("Explore rate: %f" % EPSILON)
                     print("Learning rate: %f" % LEARNING_RATE)
                     print("Streaks: %d" % num_streaks)
+                    print("Total reward: %f" % total_reward)
                     print("")
-
-                elif verbose == 1: 
-                    if done or step >= MAX_STEPS - 1:
-                        print("\nEpisode = %d" % episode)
-                        print("step = %d" % step)
-                        print("Explore rate: %f" % EPSILON)
-                        print("Learning rate: %f" % LEARNING_RATE)
-                        print("Streaks: %d" % num_streaks)
-                        print("Total reward: %f" % total_reward)
-                        print("")
 
 
             if render:
@@ -97,7 +96,7 @@ def run(episodes, is_training=True,verbose=0,render=False):
 
             if done:
                 print("Episode %d finished after %f time steps with total reward = %f (streak %d)."
-                      % (episode, step, total_reward, num_streaks))
+                        % (episode, step, total_reward, num_streaks))
 
                 if step <= SOLVED_THRESHOLD:
                     num_streaks += 1
@@ -107,7 +106,7 @@ def run(episodes, is_training=True,verbose=0,render=False):
 
             elif step >= MAX_STEPS - 1:
                 print("Episode %d timed out at %d with total reward = %f."
-                      % (episode, step, total_reward))
+                        % (episode, step, total_reward))
 
         if num_streaks >= STREAK:
             break
