@@ -17,7 +17,7 @@ def run(episodes, is_training=True,verbose=0,render=False):
     EPSILON_DECAY_RATE = 0.0001 # Since we are gonna have 10000 episodes at the last episode it will become 1
 
     MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
-    SOLVED_THRESHOLD = np.prod(MAZE_SIZE, dtype=int) # The number of steps to solve the maze to count
+    SOLVED_THRESHOLD = np.prod(MAZE_SIZE, dtype=int) # The number of steps to solve the maze to count as a streak
 
     NUM_BUCKETS = MAZE_SIZE #one bucket per grid
     NUM_ACTIONS = env.action_space.n # 4 actions (left, down, up, right)
@@ -47,7 +47,7 @@ def run(episodes, is_training=True,verbose=0,render=False):
         for step in range(MAX_STEPS):
 
             while (not done): # Here we check if the episode is done or not (if the agent has reached the goal or not)
-                if is_training and random.random() < EPSILON: # here we make it a random move if the epsilon is high (we make it learn)
+                if random.random() < EPSILON: # here we make it a random move if the epsilon is high (we make it learn)
                     action = env.action_space.sample() # It takes the action (left, down, up, right)
                 else:
                     action = np.argmax(q_table[state_0]) # here we make it to exploit from it's previous learning
@@ -109,8 +109,8 @@ def run(episodes, is_training=True,verbose=0,render=False):
                 print("Episode %d timed out at %d with total reward = %f."
                       % (episode, step, total_reward))
 
-        # if num_streaks >= STREAK:
-        #     break
+        if num_streaks >= STREAK:
+            break
 
         rewards_per_episode.append(total_reward)
         steps_per_episode.append(step + 1)
@@ -194,4 +194,4 @@ def plot_results(rewards_per_episode, steps_per_episode, explore_rates):
 
 
 if __name__ == "__main__":
-    run(5000, is_training=True, verbose=0, render=False)
+    run(10000, is_training=True, verbose=1, render=False)
