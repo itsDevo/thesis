@@ -96,7 +96,7 @@ def plot_results(paths, visited_nodes, times):
     axs[0, 0].plot(range(len(paths)), [len(path) for path in paths])
     axs[0, 0].set_xlabel('Scenario')
     axs[0, 0].set_ylabel('Path Length')
-    axs[0, 0].set_title("Path Length vs. Scenario")
+    axs[0, 0].set_title("Path Length per Scenario")
     axs[0, 0].grid(True)
 
     # Steps per episode
@@ -110,7 +110,7 @@ def plot_results(paths, visited_nodes, times):
     axs[1, 0].plot(range(len(visited_nodes)), [len(visited) for visited in visited_nodes])
     axs[1, 0].set_xlabel('Scenario')
     axs[1, 0].set_ylabel('Visited Nodes')
-    axs[1, 0].set_title('Visited Nodes vs. Scenario')
+    axs[1, 0].set_title('Visited Nodes per Scenario')
     axs[1, 0].grid(True)
 
 
