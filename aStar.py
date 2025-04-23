@@ -120,8 +120,8 @@ def plot_results(paths, visited_nodes, times):
     plt.close()
 
 if __name__ == "__main__":
-    # env = gym.make("maze-random-10x10-v0")
-
+    # paths, visited, time = gym.make("maze-random-10x10-v0")
+    
     times = []
     paths = []
     visiteds = []
