@@ -184,20 +184,6 @@ def plot_results(rewards_per_episode, steps_per_episode, explore_rates,q_table):
     axs[1, 0].set_title('Exploration vs. Exploitation')
     axs[1, 0].grid(True)
 
-    # # Success rate processing
-    # success_rate = [1 if r > 0 else 0 for r in rewards_per_episode]  # Define success
-    # window_size = 100
-    # avg_success_rate = np.convolve(success_rate, np.ones(window_size)/window_size, mode='valid')
-
-    # # Plot both raw and smoothed success rate
-    # axs[1, 1].plot(success_rate, alpha=0.7, label="Raw Success (0/1)", linewidth=1)
-    # axs[1, 1].plot(avg_success_rate, label=f"Rolling Avg ({window_size})", linewidth=2)
-    # axs[1, 1].set_xlabel("Episode")
-    # axs[1, 1].set_ylabel("Success Rate")
-    # axs[1, 1].set_title("Success Rate Over Episodes")
-    # axs[1, 1].legend()
-    # axs[1, 1].grid(True)
-
     # Q-Value Heatmap
     max_q_values = np.max(q_table, axis=-1)
     im = axs[1, 1].imshow(max_q_values.T, cmap='viridis', origin='lower')
