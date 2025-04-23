@@ -1,5 +1,6 @@
 gym == 0.23.1
 #gym_maze # 0.4
+-e .
 pygame
 numpy == 1.26.1
 matplotlib
