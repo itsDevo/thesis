@@ -127,7 +127,7 @@ if __name__ == "__main__":
     visiteds = []
 
     for i in range(100):
-        env = gym.make("maze-random-100x100-v0")
+        env = gym.make("maze-random-10x10-v0")
         # env = MazeEnvRandom10x10(enable_render=False)  # Create the environment once
         result = a_star_solver(env, render=False)
         if result is not None:
