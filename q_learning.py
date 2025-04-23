@@ -6,18 +6,19 @@ import matplotlib.pyplot as plt
 import sys
 import os
 import math
+import time
 
-def run(episodes, training_mode=1,verbose=0,render=False):
+def run(env,episodes, training_mode=1,verbose=0,render=False):
 
-    env = gym.make("maze-sample-5x5-v0") ### I need to put the environment here
+    env = gym.make(env)
 
     MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
 
-    LEARNING_RATE = 0.9 #alpha value
-    DISCOUNT_FACTOR = 0.1 #gamma value
+    LEARNING_RATE = 0.1 #alpha value, for a bigger size of a maze, set to 0.1, for a smaller size of the maze, set to 0.9
+    DISCOUNT_FACTOR = 0.9 #gamma value, for a bigger size of a maze, set to 0.9, for a smaller size of the maze, set to 0.1
     EPSILON = 1 # 1 = 100% random actions
-    EPSILON_DECAY_RATE = 0.01 # Its heuristic decay rate
-    DECAY_FACTOR = np.prod(MAZE_SIZE, dtype=float) / 10 # The decay factor for the epsilon value its heuristic
+    EPSILON_DECAY_RATE = 0.01 # Its heuristic decay rate, For a linear decay, set to 0.01
+    DECAY_FACTOR = np.prod(MAZE_SIZE, dtype=float) / 10 # The decay factor for the epsilon value its heuristic, for a gradient decay, set to 0.1
     MIN_EXPLORE_RATE = 0.001 # Minimum epsilon value
     MIN_LEARNING_RATE = 0.2 # Minimum learning rate
 
@@ -39,6 +40,7 @@ def run(episodes, training_mode=1,verbose=0,render=False):
     steps_per_episode = [] # List to store the number of steps per episode
     explore_rates = [] # List to store the explore rates per episode
 
+    tic = time.perf_counter() # Start the timer
     for episode in range(NUM_EPISODES):
         obv = env.reset()
 
@@ -98,7 +100,7 @@ def run(episodes, training_mode=1,verbose=0,render=False):
 
 
             if done:
-                print("Episode %d finished after %f time steps with total reward = %f (streak %d)."
+                print("Episode %d finished after %f steps with total reward = %f (streak %d)."
                         % (episode, step, total_reward, num_streaks))
 
                 if step <= SOLVED_THRESHOLD:
@@ -127,7 +129,9 @@ def run(episodes, training_mode=1,verbose=0,render=False):
                 LEARNING_RATE = 0.0001
         
     env.close()
-    plot_results(rewards_per_episode, steps_per_episode, explore_rates)
+    tac = time.perf_counter() # Stop the timer
+    time_elapsed_total = tac - tic
+    return rewards_per_episode, steps_per_episode, explore_rates, q_table, time_elapsed_total
     
 
 
@@ -148,7 +152,9 @@ def state_to_bucket(state, STATE_BOUNDS, NUM_BUCKETS):
     return tuple(bucket_indice)
 
 
-def plot_results(rewards_per_episode, steps_per_episode, explore_rates):
+def plot_results(rewards_per_episode, steps_per_episode, explore_rates,q_table):
+    from mpl_toolkits.axes_grid1 import make_axes_locatable
+
     # Create results folder if it doesn't exist
     results_dir = "results"
     os.makedirs(results_dir, exist_ok=True)
@@ -178,19 +184,31 @@ def plot_results(rewards_per_episode, steps_per_episode, explore_rates):
     axs[1, 0].set_title('Exploration vs. Exploitation')
     axs[1, 0].grid(True)
 
-    # Success rate processing
-    success_rate = [1 if r > 0 else 0 for r in rewards_per_episode]  # Define success
-    window_size = 100
-    avg_success_rate = np.convolve(success_rate, np.ones(window_size)/window_size, mode='same')
+    # # Success rate processing
+    # success_rate = [1 if r > 0 else 0 for r in rewards_per_episode]  # Define success
+    # window_size = 100
+    # avg_success_rate = np.convolve(success_rate, np.ones(window_size)/window_size, mode='valid')
 
-    # Plot both raw and smoothed success rate
-    axs[1, 1].plot(success_rate, alpha=0.3, label="Raw Success (0/1)", linewidth=1)
-    axs[1, 1].plot(avg_success_rate, label=f"Rolling Avg ({window_size})", linewidth=2)
-    axs[1, 1].set_xlabel("Episode")
-    axs[1, 1].set_ylabel("Success Rate")
-    axs[1, 1].set_title("Success Rate Over Episodes")
-    axs[1, 1].legend()
-    axs[1, 1].grid(True)
+    # # Plot both raw and smoothed success rate
+    # axs[1, 1].plot(success_rate, alpha=0.7, label="Raw Success (0/1)", linewidth=1)
+    # axs[1, 1].plot(avg_success_rate, label=f"Rolling Avg ({window_size})", linewidth=2)
+    # axs[1, 1].set_xlabel("Episode")
+    # axs[1, 1].set_ylabel("Success Rate")
+    # axs[1, 1].set_title("Success Rate Over Episodes")
+    # axs[1, 1].legend()
+    # axs[1, 1].grid(True)
+
+    # Q-Value Heatmap
+    max_q_values = np.max(q_table, axis=-1)
+    im = axs[1, 1].imshow(max_q_values.T, cmap='viridis', origin='lower')
+    axs[1, 1].set_title("Q-Value Heatmap")
+    axs[1, 1].set_xlabel("X Position")
+    axs[1, 1].set_ylabel("Y Position")
+
+    # Colorbar for heatmap (attach to axs[1, 1])
+    divider = make_axes_locatable(axs[1, 1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(im, cax=cax, label="Max Q-Value")
 
     # Adjust layout and save the combined plot
     plt.tight_layout()
@@ -199,4 +217,5 @@ def plot_results(rewards_per_episode, steps_per_episode, explore_rates):
 
 
 if __name__ == "__main__":
-    run(10000, training_mode=2, verbose=1, render=False)
+    rewards_per_episode, steps_per_episode, explore_rates, q_table, time_elapsed =  run("maze-sample-10x10-v0", 10000, training_mode=1, verbose=1, render=False)
+    plot_results(rewards_per_episode, steps_per_episode, explore_rates,q_table)
