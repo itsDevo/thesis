@@ -112,7 +112,7 @@ def q_plot_results(size, rewards_per_episode, steps_per_episode, shortest_path, 
         axs[1, 1].text(0.5, 0.5,
                        f"Avg Path Length: {np.nanmean(shortest_path):.2f} ± {np.nanstd(shortest_path):.2f}\n"
                        f"Avg Unique States Visited: {np.nanmean(avg_visited_per_run):.2f} ± {visited_std:.2f}\n"
-                       f"Avg Time to Solve: {np.nanmean(avg_time_per_run):.4f} sec ± {time_std:.2f}\n"
+                       f"Avg Time to Solve: {np.nanmean(avg_time_per_run):.4f} sec ± {time_std:.4f}\n"
                        f"Avg Steps: {np.nanmean(avg_steps_per_run):.2f} ± {steps_std:.2f}\n"
                        f"\n"
                         f"Avg CPU Usage: {avg_cpu:.2f} % ±{std_cpu:.2f}\n"
