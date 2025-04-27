@@ -9,7 +9,7 @@ import gym_maze
 import psutil
 from contextlib import contextmanager
 
-def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q_table,time_for_streak, visited_states_per_episode,learning_rate,decay_factor,time_per_episode,cpu,memory,mode=0):
+def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q_table,time_for_streak, visited_states_per_episode, time_per_episode, cpu,memory,mode=0):
 
     # Create results folder if it doesn't exist
     results_dir = "results"
@@ -69,8 +69,6 @@ def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q
 
         axs[2, 1].axis('off')  # Hide the last subplot
         axs[2, 1].text(0.5, 0.5,
-                    f"Learning Rate: {learning_rate}\n"
-                    f"Decay Factor: {decay_factor}\n"
                     f"Time Elapsed: {time_for_streak:.2f} seconds\n"
                     f"Total Episodes: {len(rewards_per_episode)}\n"
                     f"Average usage of CPU: {avg_cpu:.2f} % ±{std_cpu:.2f}\n"
@@ -115,8 +113,6 @@ def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q
 
         axs[1, 1].axis('off')  # Hide the last subplot
         axs[1, 1].text(0.5, 0.5,
-                       f"Learning Rate: {learning_rate:.4f}\n"
-                       f"Decay Factor: {decay_factor:.4f}\n"
                        f"Avg Time per Scenario: {np.nanmean(avg_time_per_run):.4f} sec\n"
                        f"Avg Steps per Scenario: {np.nanmean(avg_steps_per_run):.2f}\n"
                        f"Avg States Visited per Scenario: {np.nanmean(avg_visited_per_run):.2f}\n"
@@ -244,7 +240,8 @@ if __name__ == "__main__":
     q_cpu = []
     q_mem = []
 
-    mazes = ["3x3", "5x5", "10x10"]
+    # mazes = ["3x3", "5x5", "10x10"]
+    mazes = ["10x10-plus", "20x20-plus", "30x30-plus"]
 
     for size in mazes:
         for i in range(50):
@@ -263,7 +260,7 @@ if __name__ == "__main__":
             with resource_monitoring(f"Q-Learning Solver - Scenario") as stats:
                 results_q =  q_solver(env, verbose=0, render=False)
             
-            rewards, steps, explore_rates,visited_states, q_table, time_for_streak, LEARNING_RATE, DECAY_FACTOR, time_per_episode = results_q   
+            rewards, steps, explore_rates,visited_states, q_table, time_for_streak, time_per_episode = results_q   
             all_rewards.append(rewards)
             all_steps.append(steps)
             all_explore.append(explore_rates)
@@ -273,5 +270,20 @@ if __name__ == "__main__":
             q_cpu.append(stats['cpu_end'] - stats['cpu_start'])
             q_mem.append(stats['mem_end'] - stats['mem_start'])
 
-        q_plot_results(size,all_rewards, all_steps, all_explore, q_table, all_time_for_streak, all_visited, LEARNING_RATE, DECAY_FACTOR, all_time_per_episode,q_cpu,q_mem, mode=1)
+        q_plot_results(size,all_rewards, all_steps, all_explore, q_table, all_time_for_streak, all_visited, all_time_per_episode,q_cpu,q_mem, mode=1)
         a_star_plot_results(size,path_lst, visited_lst, time_lst, a_star_cpu, a_star_mem)
+        all_rewards = []
+        all_steps = []
+        all_explore = []
+        all_visited = []
+        all_time_for_streak = []
+        all_time_per_episode = []
+
+        time_lst = []
+        path_lst = []
+        visited_lst = []
+
+        a_star_cpu = []
+        a_star_mem = []
+        q_cpu = []
+        q_mem = []
