@@ -4,3 +4,4 @@ numpy == 1.26.1
 matplotlib
 setuptools
 psutil
+-e .
