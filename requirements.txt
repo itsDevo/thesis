@@ -1,6 +1,14 @@
 gym == 0.23.1
+<<<<<<< HEAD
+=======
+#gym_maze # 0.4
+-e .
+>>>>>>> 9cd99e97bd4a5895471968b8057f93217c133675
 pygame
 numpy == 1.26.1
 matplotlib
 setuptools
+<<<<<<< HEAD
 psutil
+=======
+>>>>>>> 9cd99e97bd4a5895471968b8057f93217c133675

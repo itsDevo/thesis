@@ -87,5 +87,27 @@ def a_star_solver(env, render=False):
     return path, visited, time_elapsed
 
 if __name__ == "__main__":
+<<<<<<< HEAD
     env = gym.make("maze-sample-100x100-v0")
     result = a_star_solver(env, render=False)
+=======
+    # env = gym.make("maze-random-10x10-v0")
+
+    times = []
+    paths = []
+    visiteds = []
+
+    for i in range(100):
+        env = gym.make("maze-random-10x10-v0")
+        # env = MazeEnvRandom10x10(enable_render=False)  # Create the environment once
+        result = a_star_solver(env, render=False)
+        if result is not None:
+            path, visited, time_elapsed = result
+            paths.append(path)
+            visiteds.append(visited)
+            times.append(time_elapsed)
+        else:
+            print(f"Scenario {i}: No path found.")
+
+    plot_results(paths, visiteds, times)
+>>>>>>> 9cd99e97bd4a5895471968b8057f93217c133675

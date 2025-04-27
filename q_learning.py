@@ -200,6 +200,50 @@ def state_to_bucket(state, STATE_BOUNDS, NUM_BUCKETS):
 
 
 
+<<<<<<< HEAD
+=======
+    episodes = range(len(rewards_per_episode))
+    # Create a single figure with subplots for all plots
+    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+
+    # Reward convergence
+    axs[0, 0].plot(episodes, rewards_per_episode)
+    axs[0, 0].set_xlabel('Episode')
+    axs[0, 0].set_ylabel('Total Reward')
+    axs[0, 0].set_title('Reward Convergence')
+    axs[0, 0].grid(True)
+
+    # Steps per episode
+    axs[0, 1].plot(episodes, steps_per_episode)
+    axs[0, 1].set_xlabel('Episode')
+    axs[0, 1].set_ylabel('Steps to Solve')
+    axs[0, 1].set_title('Steps per Episode')
+    axs[0, 1].grid(True)
+
+    # Explore rate over time
+    axs[1, 0].plot(episodes, explore_rates)
+    axs[1, 0].set_xlabel('Episode')
+    axs[1, 0].set_ylabel('Explore Rate')
+    axs[1, 0].set_title('Exploration vs. Exploitation')
+    axs[1, 0].grid(True)
+
+    # Q-Value Heatmap
+    max_q_values = np.max(q_table, axis=-1)
+    im = axs[1, 1].imshow(max_q_values.T, cmap='viridis', origin='lower')
+    axs[1, 1].set_title("Q-Value Heatmap")
+    axs[1, 1].set_xlabel("X Position")
+    axs[1, 1].set_ylabel("Y Position")
+
+    # Colorbar for heatmap (attach to axs[1, 1])
+    divider = make_axes_locatable(axs[1, 1])
+    cax = divider.append_axes("right", size="5%", pad=0.05)
+    plt.colorbar(im, cax=cax, label="Max Q-Value")
+
+    # Adjust layout and save the combined plot
+    plt.tight_layout()
+    plt.savefig(os.path.join(results_dir, "combined_plots.png"))
+    plt.close()
+>>>>>>> 9cd99e97bd4a5895471968b8057f93217c133675
 
 
 if __name__ == "__main__":
