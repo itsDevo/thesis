@@ -9,7 +9,7 @@ import gym_maze
 import psutil
 from contextlib import contextmanager
 
-def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q_table,time_for_streak, visited_states_per_episode, time_per_episode, cpu,memory,mode=0):
+def q_plot_results(size, rewards_per_episode, steps_per_episode, shortest_path, explore_rates,q_table,time_for_streak, visited_states_per_episode, time_per_episode, cpu,memory,mode=0):
 
     # Create results folder if it doesn't exist
     results_dir = "results"
@@ -83,42 +83,42 @@ def q_plot_results(size, rewards_per_episode, steps_per_episode, explore_rates,q
         avg_visited_per_run = np.array([np.nanmean(visited) for visited in visited_states_per_episode])
         avg_time_per_run = np.array([np.nanmean(times) for times in time_per_episode])
 
-        scenarios = range(len(avg_steps_per_run))
+        scenarios = range(len(shortest_path))
 
         steps_std = np.std(avg_steps_per_run)
         visited_std = np.std(avg_visited_per_run)
         time_std = np.std(avg_time_per_run)
 
         # Plotting
-        axs[0, 0].plot(scenarios, avg_steps_per_run, label='Steps to Solve')
-        axs[0, 0].fill_between(scenarios, avg_steps_per_run - steps_std, avg_steps_per_run + steps_std, alpha=0.2)
+        axs[0, 0].plot(scenarios, shortest_path)
         axs[0, 0].set_xlabel('Scenario')
-        axs[0, 0].set_ylabel('Average Steps')
-        axs[0, 0].set_title('Average Steps per Scenario')
+        axs[0, 0].set_ylabel('Path Length')
+        axs[0, 0].set_title('Path Length per Scenario')
         axs[0, 0].grid(True)
 
         axs[0, 1].plot(scenarios, avg_time_per_run, label='Avg Time per Episode')
-        axs[0, 1].fill_between(scenarios, avg_time_per_run - time_std, avg_time_per_run + time_std, alpha=0.2)
         axs[0, 1].set_xlabel('Scenario')
         axs[0, 1].set_ylabel('Time (Seconds)')
-        axs[0, 1].set_title('Average Time per Scenario')
+        axs[0, 1].set_title('Average Time to Solve per Scenario')
         axs[0, 1].grid(True)
 
         axs[1, 0].plot(scenarios, avg_visited_per_run, label='Unique States Visited')
-        axs[1, 0].fill_between(scenarios, avg_visited_per_run - visited_std, avg_visited_per_run + visited_std, alpha=0.2)
         axs[1, 0].set_xlabel('Scenario')
-        axs[1, 0].set_ylabel('Visited States')
-        axs[1, 0].set_title('Average Unique States Visited per Scenario')
+        axs[1, 0].set_ylabel('Unique Visited States')
+        axs[1, 0].set_title('Average Unique Visited States per Scenario')
         axs[1, 0].grid(True)
 
         axs[1, 1].axis('off')  # Hide the last subplot
         axs[1, 1].text(0.5, 0.5,
-                       f"Avg Time per Scenario: {np.nanmean(avg_time_per_run):.4f} sec\n"
-                       f"Avg Steps per Scenario: {np.nanmean(avg_steps_per_run):.2f}\n"
-                       f"Avg States Visited per Scenario: {np.nanmean(avg_visited_per_run):.2f}\n"
-                        f"Average usage of CPU: {avg_cpu:.2f} % ±{std_cpu:.2f}\n"
-                        f"Average usage of Memory: {avg_memory:.2f} MB ±{std_memory:.2f}\n",
+                       f"Avg Path Length: {np.nanmean(shortest_path):.2f} ± {np.nanstd(shortest_path):.2f}\n"
+                       f"Avg Unique States Visited: {np.nanmean(avg_visited_per_run):.2f} ± {visited_std:.2f}\n"
+                       f"Avg Time to Solve: {np.nanmean(avg_time_per_run):.4f} sec ± {time_std:.2f}\n"
+                       f"Avg Steps: {np.nanmean(avg_steps_per_run):.2f} ± {steps_std:.2f}\n"
+                       f"\n"
+                        f"Avg CPU Usage: {avg_cpu:.2f} % ±{std_cpu:.2f}\n"
+                        f"Avg Memory Usage: {avg_memory:.2f} MB ±{std_memory:.2f}\n",
                        fontsize=12, ha='center', va='center')
+        axs[1, 1].set_title("Statistics")
 
     # Adjust layout and save the combined plot
     plt.tight_layout()
@@ -154,7 +154,6 @@ def a_star_plot_results(size,paths, visited_nodes, times, cpu, memory):
 
     # Path Length
     axs[0, 0].plot(range(len(paths)), path_lengths, label='Path Length')
-    axs[0, 0].fill_between(range(len(paths)), path_lengths - std_path_length, path_lengths + std_path_length, alpha=0.2)
     axs[0, 0].set_xlabel('Scenario')
     axs[0, 0].set_ylabel('Path Length')
     axs[0, 0].set_title("Path Length per Scenario")
@@ -162,7 +161,6 @@ def a_star_plot_results(size,paths, visited_nodes, times, cpu, memory):
 
     # Steps per episode
     axs[0, 1].plot(range(len(times)), times_array, label='Time to Solve')
-    axs[0, 1].fill_between(range(len(times)), times_array - std_time, times_array + std_time, alpha=0.2)
     axs[0, 1].set_xlabel('Scenario')
     axs[0, 1].set_ylabel('Time (Seconds)')
     axs[0, 1].set_title('Time to solve per Scenario')
@@ -170,21 +168,21 @@ def a_star_plot_results(size,paths, visited_nodes, times, cpu, memory):
 
     # Explore rate over time
     axs[1, 0].plot(range(len(visited_nodes)), visited_counts, label='Visited Nodes')
-    axs[1, 0].fill_between(range(len(visited_nodes)), visited_counts - std_visited_nodes, visited_counts + std_visited_nodes, alpha=0.2)
     axs[1, 0].set_xlabel('Scenario')
     axs[1, 0].set_ylabel('Visited Nodes')
-    axs[1, 0].set_title('Visited Nodes per Scenario')
+    axs[1, 0].set_title('Unique Visited States per Scenario')
     axs[1, 0].grid(True)
 
     # KPI Summary
     axs[1,1].axis('off')  # Hide the last subplot
-    axs[1,1].text(0.5, 0.5, f"Average Path Length: {avg_path_length:.2f}\n"
-                            f"Average Visited Nodes: {avg_visited_nodes:.2f}\n"
-                            f"Average Time: {avg_time:.4f} seconds\n"
-                            f"Average usage of CPU: {avg_cpu:.2f} % ±{std_cpu:.2f}\n"
-                            f"Average usage of Memory: {avg_memory:.2f} MB ±{std_memory:.2f}\n",
+    axs[1,1].text(0.5, 0.5, f"Avg Path Length: {avg_path_length:.2f} ± {std_path_length:.2f}\n"
+                            f"Avg Unique Visited States: {avg_visited_nodes:.2f} ± {std_visited_nodes:.2f}\n"
+                            f"Avg Time to Solve: {avg_time:.4f} seconds ± {std_time:.4f}\n"
+                            f"\n"
+                            f"Avg CPU Usage: {avg_cpu:.2f} % ± {std_cpu:.2f}\n"
+                            f"Avg Memory Usage: {avg_memory:.2f} MB ± {std_memory:.2f}\n",
                 fontsize=12, ha='center', va='center')
-    axs[1,1].set_title("Summary Statistics")
+    axs[1,1].set_title("Statistics")
 
 
     # Adjust layout and save the combined plot
@@ -230,6 +228,7 @@ if __name__ == "__main__":
     all_visited = []
     all_time_for_streak = []
     all_time_per_episode = []
+    all_shortest_path = []
 
     time_lst = []
     path_lst = []
@@ -240,8 +239,8 @@ if __name__ == "__main__":
     q_cpu = []
     q_mem = []
 
-    # mazes = ["3x3", "5x5", "10x10"]
-    mazes = ["10x10-plus", "20x20-plus", "30x30-plus"]
+    mazes = ["3x3", "5x5", "10x10"]
+    # mazes = ["10x10-plus", "20x20-plus", "30x30-plus"]
 
     for size in mazes:
         for i in range(50):
@@ -263,6 +262,7 @@ if __name__ == "__main__":
             rewards, steps, explore_rates,visited_states, q_table, time_for_streak, time_per_episode = results_q   
             all_rewards.append(rewards)
             all_steps.append(steps)
+            all_shortest_path.append(steps[-1])
             all_explore.append(explore_rates)
             all_visited.append(visited_states)
             all_time_for_streak.append(time_for_streak)
@@ -270,7 +270,7 @@ if __name__ == "__main__":
             q_cpu.append(stats['cpu_end'] - stats['cpu_start'])
             q_mem.append(stats['mem_end'] - stats['mem_start'])
 
-        q_plot_results(size,all_rewards, all_steps, all_explore, q_table, all_time_for_streak, all_visited, all_time_per_episode,q_cpu,q_mem, mode=1)
+        q_plot_results(size,all_rewards, all_steps, all_shortest_path, all_explore, q_table, all_time_for_streak, all_visited, all_time_per_episode,q_cpu,q_mem, mode=1)
         a_star_plot_results(size,path_lst, visited_lst, time_lst, a_star_cpu, a_star_mem)
         all_rewards = []
         all_steps = []
@@ -278,6 +278,8 @@ if __name__ == "__main__":
         all_visited = []
         all_time_for_streak = []
         all_time_per_episode = []
+        all_shortest_path = []
+
 
         time_lst = []
         path_lst = []
