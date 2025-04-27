@@ -2,25 +2,49 @@ import random
 import numpy as np
 import gym
 import gym_maze
-import matplotlib.pyplot as plt
 import sys
-import os
 import math
 import time
 
-def run(env,episodes, training_mode=1,verbose=0,render=False):
-
-    env = gym.make(env)
+def q_solver(env,verbose=0,render=False):
 
     MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
 
-    LEARNING_RATE = 0.1 #alpha value, for a bigger size of a maze, set to 0.1, for a smaller size of the maze, set to 0.9
-    DISCOUNT_FACTOR = 0.9 #gamma value, for a bigger size of a maze, set to 0.9, for a smaller size of the maze, set to 0.1
-    EPSILON = 1 # 1 = 100% random actions
-    EPSILON_DECAY_RATE = 0.01 # Its heuristic decay rate, For a linear decay, set to 0.01
-    DECAY_FACTOR = np.prod(MAZE_SIZE, dtype=float) / 10 # The decay factor for the epsilon value its heuristic, for a gradient decay, set to 0.1
-    MIN_EXPLORE_RATE = 0.001 # Minimum epsilon value
-    MIN_LEARNING_RATE = 0.2 # Minimum learning rate
+    if env.spec.id == "maze-sample-3x3-v0" or "maze-sample-3x3-v0":
+        LEARNING_RATE = 0.7  # Moderate learning rate for balanced updates
+        DISCOUNT_FACTOR = 0.8  # Higher discount factor to value future rewards
+        EPSILON = 0.9  # Initial exploration rate, slightly less random actions
+        DECAY_FACTOR = (np.prod(MAZE_SIZE, dtype=float) - 5) / 10  # Balanced decay for exploration
+        NUM_EPISODES = 1200  # Sufficient episodes for convergence without excessive runtime
+        MIN_EXPLORE_RATE = 0.001  # Minimum exploration rate
+        MIN_LEARNING_RATE = 0.2  # Minimum learning rate
+
+    elif env.spec.id == "maze-sample-5x5-v0" or "maze-sample-5x5-v0":
+        LEARNING_RATE = 0.6  # Moderate learning rate for balanced updates
+        DISCOUNT_FACTOR = 0.8  # Higher discount factor to value future rewards
+        EPSILON = 0.7  # Initial exploration rate, less random actions
+        DECAY_FACTOR = (np.prod(MAZE_SIZE, dtype=float) - 10) / 15  # Balanced decay for exploration
+        NUM_EPISODES = 1500  # Sufficient episodes for convergence without excessive runtime
+        MIN_EXPLORE_RATE = 0.001  # Minimum exploration rate
+        MIN_LEARNING_RATE = 0.2  # Minimum learning rate
+
+    elif env.spec.id == "maze-sample-10x10-v0" or "maze-sample-10x10-v0":
+        LEARNING_RATE = 0.3  # Moderate learning rate for balanced updates
+        DISCOUNT_FACTOR = 0.9  # High discount factor to value future rewards
+        EPSILON = 0.7  # Initial exploration rate, less random actions
+        DECAY_FACTOR = (np.prod(MAZE_SIZE, dtype=float) - 1) / 50  # Faster decay for exploration
+        NUM_EPISODES = 2000  # Reduced episodes for time efficiency
+        MIN_EXPLORE_RATE = 0.001  # Minimum exploration rate
+        MIN_LEARNING_RATE = 0.2  # Minimum learning rate
+
+    elif env.spec.id == "maze-sample-100x100-v0" or "maze-sample-100x100-v0":
+        LEARNING_RATE = 0.1  # Lower learning rate for stability
+        DISCOUNT_FACTOR = 0.95  # High discount factor to value long-term rewards
+        EPSILON = 0.8  # Moderate initial exploration rate
+        DECAY_FACTOR = np.prod(MAZE_SIZE, dtype=float) / 20  # Balanced decay for exploration
+        NUM_EPISODES = 10000  # Reduced episodes for time efficiency
+        MIN_EXPLORE_RATE = 0.01  # Slightly higher minimum exploration
+        MIN_LEARNING_RATE = 0.1  # Lower minimum learning rate for stability
 
     SOLVED_THRESHOLD = np.prod(MAZE_SIZE, dtype=int) # The number of steps to solve the maze to count as a streak
 
@@ -31,23 +55,25 @@ def run(env,episodes, training_mode=1,verbose=0,render=False):
 
     STATE_BOUNDS = list(zip(env.observation_space.low, env.observation_space.high)) # Bounds of the state space
 
-    NUM_EPISODES = episodes # Number of episodes to train the agent
-    MAX_STEPS = np.prod(MAZE_SIZE, dtype=int) * 100 # Maximum number of steps per episode
-    STREAK = 100 # Number of episodes to check for convergence
+    # NUM_EPISODES = episodes # Number of episodes to train the agent
+    MAX_STEPS = np.prod(MAZE_SIZE, dtype=int) * 10 # Maximum number of steps per episode
+    STREAK = 50 # Number of episodes to check for convergence
 
     num_streaks = 0 # Number of streaks of 100 episodes with no improvement in the average reward
     rewards_per_episode = [] # List to store the rewards per episode
+    visited_states_per_episode = [] # List to store the visited states per episode
     steps_per_episode = [] # List to store the number of steps per episode
     explore_rates = [] # List to store the explore rates per episode
+    time_per_episode = [] # List to store the time per episode
 
     tic = time.perf_counter() # Start the timer
     for episode in range(NUM_EPISODES):
+        time_episode_start = time.time()
         obv = env.reset()
 
         state_0 = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the state of the environment (the position of the agent in the maze)
         total_reward = 0
-        # done = False
-        # truncated = False # There is no truncated in the step function
+        visited_states = set()  # Set to store the visited states
 
 
         for step in range(MAX_STEPS):
@@ -62,7 +88,7 @@ def run(env,episodes, training_mode=1,verbose=0,render=False):
 
             state = state_to_bucket(obv, STATE_BOUNDS, NUM_BUCKETS) # Here we get the new state of the environment (the position of the agent in the maze)
             total_reward += reward # Here we get the reward of the action taken (the position of the agent in the maze)
-
+            visited_states.add(state)  # Add the new state to the visited states
             best_q = np.amax(q_table[state]) # Here we get the best q value of the new state (the position of the agent in the maze) 
             q_table[state_0 + (action,)] += LEARNING_RATE * (reward + DISCOUNT_FACTOR * (best_q) - q_table[state_0 + (action,)]) # we apply the q function
 
@@ -100,8 +126,12 @@ def run(env,episodes, training_mode=1,verbose=0,render=False):
 
 
             if done:
-                print("Episode %d finished after %f steps with total reward = %f (streak %d)."
-                        % (episode, step, total_reward, num_streaks))
+                time_episode_end = time.time()
+                estimated_time_per_episode = time_episode_end - time_episode_start
+                time_per_episode.append(estimated_time_per_episode)
+
+                print(f"(Q Learning) Estimated time for the episode : {estimated_time_per_episode}")
+                print(f"(Q Learning) Episode {episode} finished after {step:.1f} steps with total reward = {total_reward} (streak {num_streaks}).")
 
                 if step <= SOLVED_THRESHOLD:
                     num_streaks += 1
@@ -110,28 +140,44 @@ def run(env,episodes, training_mode=1,verbose=0,render=False):
                 break    
 
             elif step >= MAX_STEPS - 1:
-                print("Episode %d timed out at %d with total reward = %f."
-                        % (episode, step, total_reward))
+                time_episode_end = time.time()
+                estimated_time_per_episode = time_episode_end - time_episode_start
+                time_per_episode.append(estimated_time_per_episode)
+
+                print(f"(Q Learning) Estimated time for the episode: {estimated_time_per_episode}")
+                print(f"(Q Learning) Episode {episode} timed out with {step:.1f} steps and total reward = {total_reward}.")
+
+        rewards_per_episode.append(total_reward)
+        steps_per_episode.append(step + 1)
+        visited_states_per_episode.append(len(visited_states))
+        explore_rates.append(EPSILON)
 
         if num_streaks >= STREAK:
             break
 
-        rewards_per_episode.append(total_reward)
-        steps_per_episode.append(step + 1)
-        explore_rates.append(EPSILON)
-
-        if training_mode == 1:
-            EPSILON = max(MIN_EXPLORE_RATE, min(0.8, 1.0 - math.log10((episode+1)/DECAY_FACTOR))) # decrease the epsilon. we want it to exploit as it goes further
-            LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.8, 1.0 - math.log10((episode+1)/DECAY_FACTOR))) # decrease the learning rate. we want it to give more less to the new learning as it goes further
-        elif training_mode == 2:
-            EPSILON = max(EPSILON - EPSILON_DECAY_RATE, 0) # decrease the epsilon. we want it to exploit as it goes further
-            if(EPSILON == 0):
-                LEARNING_RATE = 0.0001
+        if env.spec.id == "maze-sample-3x3-v0" or "maze-sample-3x3-v0":
+            EPSILON = max(MIN_EXPLORE_RATE, min(0.9, 1.0 - 0.7 * math.log10((episode+1)/DECAY_FACTOR)))  # Faster decay for small mazes
+            LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.7, 1.0 - 0.7 * math.log10((episode+1)/DECAY_FACTOR)))  # Higher learning rate for quick convergence
         
+        elif env.spec.id == "maze-sample-5x5-v0" or "maze-sample-5x5-v0":
+            EPSILON = max(MIN_EXPLORE_RATE, min(0.7, 1.0 - 0.6 * math.log10((episode+1)/DECAY_FACTOR)))  # Balanced decay
+            LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.6, 1.0 - 0.6 * math.log10((episode+1)/DECAY_FACTOR)))  # Balanced learning rate
+        
+        elif env.spec.id == "maze-sample-10x10-v0" or "maze-sample-10x10-v0":
+            EPSILON = max(MIN_EXPLORE_RATE, min(0.7, 1.0 - 0.5 * math.log10((episode+1)/DECAY_FACTOR)))  # Slower decay for larger mazes
+            LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.3, 1.0 - 0.5 * math.log10((episode+1)/DECAY_FACTOR)))  # Lower learning rate for stability
+        
+        elif env.spec.id == "maze-sample-100x100-v0" or "maze-sample-100x100-v0":
+            EPSILON = max(MIN_EXPLORE_RATE, 1.0 / math.sqrt(episode+1))  # Very slow decay for massive mazes
+            LEARNING_RATE = max(MIN_LEARNING_RATE, 1.0 / math.sqrt(episode+1))  # Very slow learning rate for stability
+
+
     env.close()
     tac = time.perf_counter() # Stop the timer
-    time_elapsed_total = tac - tic
-    return rewards_per_episode, steps_per_episode, explore_rates, q_table, time_elapsed_total
+    time_to_finish_streak = tac - tic
+    print(f"(Q Learning) Total time to finish the streak: {time_to_finish_streak:0.4f} seconds")
+
+    return rewards_per_episode, steps_per_episode, explore_rates, visited_states_per_episode, q_table, time_to_finish_streak, LEARNING_RATE, DECAY_FACTOR, time_per_episode
     
 
 
@@ -152,70 +198,11 @@ def state_to_bucket(state, STATE_BOUNDS, NUM_BUCKETS):
     return tuple(bucket_indice)
 
 
-def plot_results(rewards_per_episode, steps_per_episode, explore_rates,q_table):
-    from mpl_toolkits.axes_grid1 import make_axes_locatable
 
-    # Create results folder if it doesn't exist
-    results_dir = "results"
-    os.makedirs(results_dir, exist_ok=True)
 
-    episodes = range(len(rewards_per_episode))
-    # Create a single figure with subplots for all plots
-    fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-
-    # Reward convergence
-    axs[0, 0].plot(episodes, rewards_per_episode)
-    axs[0, 0].set_xlabel('Episode')
-    axs[0, 0].set_ylabel('Total Reward')
-    axs[0, 0].set_title('Reward Convergence')
-    axs[0, 0].grid(True)
-
-    # Steps per episode
-    axs[0, 1].plot(episodes, steps_per_episode)
-    axs[0, 1].set_xlabel('Episode')
-    axs[0, 1].set_ylabel('Steps to Solve')
-    axs[0, 1].set_title('Steps per Episode')
-    axs[0, 1].grid(True)
-
-    # Explore rate over time
-    axs[1, 0].plot(episodes, explore_rates)
-    axs[1, 0].set_xlabel('Episode')
-    axs[1, 0].set_ylabel('Explore Rate')
-    axs[1, 0].set_title('Exploration vs. Exploitation')
-    axs[1, 0].grid(True)
-
-    # # Success rate processing
-    # success_rate = [1 if r > 0 else 0 for r in rewards_per_episode]  # Define success
-    # window_size = 100
-    # avg_success_rate = np.convolve(success_rate, np.ones(window_size)/window_size, mode='valid')
-
-    # # Plot both raw and smoothed success rate
-    # axs[1, 1].plot(success_rate, alpha=0.7, label="Raw Success (0/1)", linewidth=1)
-    # axs[1, 1].plot(avg_success_rate, label=f"Rolling Avg ({window_size})", linewidth=2)
-    # axs[1, 1].set_xlabel("Episode")
-    # axs[1, 1].set_ylabel("Success Rate")
-    # axs[1, 1].set_title("Success Rate Over Episodes")
-    # axs[1, 1].legend()
-    # axs[1, 1].grid(True)
-
-    # Q-Value Heatmap
-    max_q_values = np.max(q_table, axis=-1)
-    im = axs[1, 1].imshow(max_q_values.T, cmap='viridis', origin='lower')
-    axs[1, 1].set_title("Q-Value Heatmap")
-    axs[1, 1].set_xlabel("X Position")
-    axs[1, 1].set_ylabel("Y Position")
-
-    # Colorbar for heatmap (attach to axs[1, 1])
-    divider = make_axes_locatable(axs[1, 1])
-    cax = divider.append_axes("right", size="5%", pad=0.05)
-    plt.colorbar(im, cax=cax, label="Max Q-Value")
-
-    # Adjust layout and save the combined plot
-    plt.tight_layout()
-    plt.savefig(os.path.join(results_dir, "combined_plots.png"))
-    plt.close()
 
 
 if __name__ == "__main__":
-    rewards_per_episode, steps_per_episode, explore_rates, q_table, time_elapsed =  run("maze-sample-10x10-v0", 10000, training_mode=1, verbose=1, render=False)
-    plot_results(rewards_per_episode, steps_per_episode, explore_rates,q_table)
+    env = gym.make("maze-sample-10x10-v0")
+    rewards_per_episode, steps_per_episode, explore_rates,visited_states_per_episode, q_table, time_to_finish_streak, LEARNING_RATE, DECAY_FACTOR, time_per_episode =  q_solver(env, verbose=1, render=False)
+    
