@@ -1,6 +1,7 @@
 from gym.envs.registration import register
 from . import envs
 
+
 register(
     id='maze-v0',
     entry_point='gym_maze.envs:MazeEnvSample5x5',
@@ -84,5 +85,23 @@ register(
 register(
     id='maze-sample-10x10-plus-v0',
     entry_point='gym_maze.envs:MazeEnvSample10x10Plus',
+    max_episode_steps=1000000,
+)
+
+register(
+    id='maze-sample-50x50-v0',
+    entry_point='gym_maze.envs:MazeEnvSample50x50',
+    max_episode_steps=1000000,
+)
+
+register(
+    id='maze-sample-200x200-v0',
+    entry_point='gym_maze.envs:MazeEnvSample200x200',
+    max_episode_steps=1000000,
+)
+
+register(
+    id='maze-sample-500x500-v0',
+    entry_point='gym_maze.envs:MazeEnvSample500x500',
     max_episode_steps=1000000,
 )

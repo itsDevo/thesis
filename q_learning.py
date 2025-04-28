@@ -224,6 +224,6 @@ def state_to_bucket(state, STATE_BOUNDS, NUM_BUCKETS):
     return tuple(bucket_indice)
 
 if __name__ == "__main__":
-    env = gym.make("maze-random-30x30-plus-v0")
-    rewards_per_episode, steps_per_episode, explore_rates,visited_states_per_episode, q_table, time_to_finish_streak, time_per_episode =  q_solver(env, verbose=1, render=False)
+    env = gym.make("maze-sample-500x500-v0")
+    rewards_per_episode, steps_per_episode, explore_rates,visited_states_per_episode, q_table, time_to_finish_streak, time_per_episode =  q_solver(env, verbose=1, render=True)
     
