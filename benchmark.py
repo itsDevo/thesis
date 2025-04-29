@@ -239,12 +239,12 @@ if __name__ == "__main__":
     q_cpu = []
     q_mem = []
 
-    mazes = ["3x3", "5x5", "10x10"]
+    mazes = ["50x50"]
     # mazes = ["10x10-plus", "20x20-plus", "30x30-plus"]
 
     for size in mazes:
         for i in range(50):
-            env = gym.make("maze-random-" +size+ "-v0")
+            env = gym.make("maze-random-" +size+ "-v0", enable_render=False)
         
             with resource_monitoring(f"A* Solver - Scenario") as stats:   
                 results_a = a_star_solver(env, render=False)
