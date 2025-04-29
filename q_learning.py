@@ -10,7 +10,7 @@ def q_solver(env,verbose=0,render=False):
 
     MAZE_SIZE = tuple((env.observation_space.high + np.ones(env.observation_space.shape)).astype(int))
 
-    if env.spec.id == "maze-sample-3x3-v0" or "maze-random-3x3-v0":
+    if env.spec.id == "maze-sample-3x3-v0" or env.spec.id =="maze-random-3x3-v0":
         LEARNING_RATE = 0.7  # Moderate learning rate for balanced updates
         DISCOUNT_FACTOR = 0.8  # Higher discount factor to value future rewards
         EPSILON = 0.9  # Initial exploration rate, slightly less random actions
@@ -19,7 +19,7 @@ def q_solver(env,verbose=0,render=False):
         MIN_EXPLORE_RATE = 0.001  # Minimum exploration rate
         MIN_LEARNING_RATE = 0.2  # Minimum learning rate
 
-    elif env.spec.id == "maze-sample-5x5-v0" or "maze-random-5x5-v0":
+    elif env.spec.id == "maze-sample-5x5-v0" or env.spec.id =="maze-random-5x5-v0":
         LEARNING_RATE = 0.6  # Moderate learning rate for balanced updates
         DISCOUNT_FACTOR = 0.8  # Higher discount factor to value future rewards
         EPSILON = 0.7  # Initial exploration rate, less random actions
@@ -28,7 +28,7 @@ def q_solver(env,verbose=0,render=False):
         MIN_EXPLORE_RATE = 0.001  # Minimum exploration rate
         MIN_LEARNING_RATE = 0.2  # Minimum learning rate
 
-    elif env.spec.id == "maze-sample-10x10-v0" or "maze-random-10x10-v0" or "maze-random-10x10-plus-v0":
+    elif env.spec.id == "maze-sample-10x10-v0" or env.spec.id =="maze-random-10x10-v0" or env.spec.id =="maze-random-10x10-plus-v0":
         LEARNING_RATE = 0.3  # Moderate learning rate for balanced updates
         DISCOUNT_FACTOR = 0.9  # High discount factor to value future rewards
         EPSILON = 0.7  # Initial exploration rate, less random actions
@@ -55,7 +55,7 @@ def q_solver(env,verbose=0,render=False):
         MIN_EXPLORE_RATE = 0.005  # Minimum exploration rate for efficient exploration
         MIN_LEARNING_RATE = 0.1  # Lower minimum learning rate for stability
         
-    elif env.spec.id == "maze-sample-100x100-v0" or "maze-sample-100x100-v0":
+    elif env.spec.id == "maze-sample-100x100-v0" or env.spec.id =="maze-random-100x100-v0":
         LEARNING_RATE = 0.1  # Lower learning rate for stability
         DISCOUNT_FACTOR = 0.95  # High discount factor to value long-term rewards
         EPSILON = 0.8  # Moderate initial exploration rate
@@ -173,15 +173,15 @@ def q_solver(env,verbose=0,render=False):
         if num_streaks >= STREAK:
             break
 
-        if env.spec.id == "maze-sample-3x3-v0" or "maze-sample-3x3-v0":
+        if env.spec.id == "maze-sample-3x3-v0" or env.spec.id =="maze-random-3x3-v0":
             EPSILON = max(MIN_EXPLORE_RATE, min(0.9, 1.0 - 0.7 * math.log10((episode+1)/DECAY_FACTOR)))  # Faster decay for small mazes
             LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.7, 1.0 - 0.7 * math.log10((episode+1)/DECAY_FACTOR)))  # Higher learning rate for quick convergence
         
-        elif env.spec.id == "maze-sample-5x5-v0" or "maze-sample-5x5-v0":
+        elif env.spec.id == "maze-sample-5x5-v0" or env.spec.id =="maze-random-5x5-v0":
             EPSILON = max(MIN_EXPLORE_RATE, min(0.7, 1.0 - 0.6 * math.log10((episode+1)/DECAY_FACTOR)))  # Balanced decay
             LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.6, 1.0 - 0.6 * math.log10((episode+1)/DECAY_FACTOR)))  # Balanced learning rate
         
-        elif env.spec.id == "maze-sample-10x10-v0" or "maze-sample-10x10-v0":
+        elif env.spec.id == "maze-sample-10x10-v0" or env.spec.id =="maze-random-10x10-v0":
             EPSILON = max(MIN_EXPLORE_RATE, min(0.7, 1.0 - 0.5 * math.log10((episode+1)/DECAY_FACTOR)))  # Slower decay for larger mazes
             LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.3, 1.0 - 0.5 * math.log10((episode+1)/DECAY_FACTOR)))  # Lower learning rate for stability
         
@@ -193,7 +193,7 @@ def q_solver(env,verbose=0,render=False):
             EPSILON = max(MIN_EXPLORE_RATE, min(0.6, 1.0 - 0.3 * math.log10((episode+1)/DECAY_FACTOR)))  # Slower decay for larger mazes
             LEARNING_RATE = max(MIN_LEARNING_RATE, min(0.15, 1.0 - 0.3 * math.log10((episode+1)/DECAY_FACTOR)))  # Lower learning rate for stability in larger mazes
         
-        elif env.spec.id == "maze-sample-100x100-v0" or "maze-sample-100x100-v0":
+        elif env.spec.id == "maze-sample-100x100-v0" or env.spec.id =="maze-random-100x100-v0":
             EPSILON = max(MIN_EXPLORE_RATE, 1.0 / math.sqrt(episode+1))  # Very slow decay for massive mazes
             LEARNING_RATE = max(MIN_LEARNING_RATE, 1.0 / math.sqrt(episode+1))  # Very slow learning rate for stability
 
@@ -224,6 +224,6 @@ def state_to_bucket(state, STATE_BOUNDS, NUM_BUCKETS):
     return tuple(bucket_indice)
 
 if __name__ == "__main__":
-    env = gym.make("maze-sample-500x500-v0")
-    rewards_per_episode, steps_per_episode, explore_rates,visited_states_per_episode, q_table, time_to_finish_streak, time_per_episode =  q_solver(env, verbose=1, render=True)
+    env = gym.make("maze-random-3x3-v0")
+    rewards_per_episode, steps_per_episode, explore_rates,visited_states_per_episode, q_table, time_to_finish_streak, time_per_episode =  q_solver(env, verbose=1, render=False)
     
