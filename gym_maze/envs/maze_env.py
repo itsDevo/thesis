@@ -177,13 +177,29 @@ class MazeEnvSample10x10Plus(MazeEnv):
     def __init__(self, enable_render=True):
         super(MazeEnvSample10x10Plus, self).__init__(maze_file="maze2d_10x10_plus.pkl", enable_render=enable_render)
 
+class MazeEnvSample20x20(MazeEnv):
+    def __init__(self, enable_render=True):
+        super(MazeEnvSample20x20, self).__init__(maze_file="maze2d_20x20.npy", enable_render=enable_render)
+
+class MazeEnvRandom20x20(MazeEnv):
+    def __init__(self, enable_render=True):
+        super(MazeEnvRandom20x20, self).__init__(maze_size=(20, 20), enable_render=enable_render)
+
+class MazeEnvSample30x30(MazeEnv):
+    def __init__(self, enable_render=True):
+        super(MazeEnvSample30x30, self).__init__(maze_file="maze2d_30x30.npy", enable_render=enable_render)
+
+class MazeEnvRandom30x30(MazeEnv):
+    def __init__(self, enable_render=True):
+        super(MazeEnvRandom30x30, self).__init__(maze_size=(30, 30), enable_render=enable_render)        
+
 class MazeEnvSample50x50(MazeEnv):
     def __init__(self, enable_render=True):
         super(MazeEnvSample50x50, self).__init__(maze_file="maze2d_50x50.npy", enable_render=enable_render)
 
 class MazeEnvRandom50x50(MazeEnv):
     def __init__(self, enable_render=True):
-        super(MazeEnvRandom50x50, self).__init__(maze_size=("50x50"), enable_render=enable_render)
+        super(MazeEnvRandom50x50, self).__init__(maze_size=(50, 50), enable_render=enable_render)
 
 class MazeEnvSample200x200(MazeEnv):
     def __init__(self, enable_render=True):

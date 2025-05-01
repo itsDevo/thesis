@@ -89,9 +89,42 @@ register(
 )
 
 register(
+    id='maze-sample-20x20-v0',
+    entry_point='gym_maze.envs:MazeEnvSample20x20',
+    max_episode_steps=1000000,
+)
+
+register(
+    id='maze-random-20x20-v0',
+    entry_point='gym_maze.envs:MazeEnvRandom20x20',
+    max_episode_steps=1000000,
+    nondeterministic=True,
+)
+
+register(
+    id='maze-sample-30x30-v0',
+    entry_point='gym_maze.envs:MazeEnvSample30x30',
+    max_episode_steps=1000000,
+)
+
+register(
+    id='maze-random-30x30-v0',
+    entry_point='gym_maze.envs:MazeEnvRandom30x30',
+    max_episode_steps=1000000,
+    nondeterministic=True,
+)
+
+register(
     id='maze-sample-50x50-v0',
     entry_point='gym_maze.envs:MazeEnvSample50x50',
     max_episode_steps=1000000,
+)
+
+register(
+    id='maze-random-50x50-v0',
+    entry_point='gym_maze.envs:MazeEnvRandom50x50',
+    max_episode_steps=1000000,
+    nondeterministic=True,
 )
 
 register(
